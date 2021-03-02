@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
+      github_sha_short: ${{ steps.slug.outputs.sha8 }}
     steps:
       - name: Get short SHA
         id: slug
@@ -33,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run a one-line script
-        run: echo Hello, world!
+        run: echo Hello, world, we're on ${{ needs.prepareRelease.outputs.github_sha_short }}!
       - name: Run a multi-line script
         run: |
           echo Sleep 10s...
