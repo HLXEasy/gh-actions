@@ -53,6 +53,8 @@ jobs:
   buildB:
     runs-on: ubuntu-latest
     needs: prepareRelease
+    outputs:
+      upload_url: ${{ needs.prepareRelease.outputs.upload_url }}
     steps:
       - uses: actions/checkout@v1
       - name: Run a one-line script
