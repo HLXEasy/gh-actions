@@ -8,7 +8,7 @@ jobs:
   prepareRelease:
     runs-on: ubuntu-latest
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      upload_url: ${{ steps.create_release.outputs.url }}
       github_sha_short: ${{ steps.slug.outputs.sha8 }}
       alias_release: ${{ steps.determine_release.outputs.alias_release }}
     steps:
@@ -34,19 +34,33 @@ jobs:
           else
               echo "::set-output name=alias_release::Build${{ github.run_number }}"
           fi
-      - name: Create Release
+      - name: Release from master
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        uses: softprops/action-gh-release@v1
+        if: ${{ steps.extract_branch.outputs.branch }} == master
         with:
-          tag_name: ${{ steps.determine_release.outputs.alias_release }}-${{ steps.slug.outputs.sha8 }}
-          release_name: "Continuous build #${{ github.run_number }}"
+          tag_name: ${{ steps.determine_release.outputs.alias_release }}
+          name: "Release build #${{ github.run_number }}"
+          body_path: ${{ github.workspace }}/Releasenotes.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release from develop
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        if: ${{ steps.extract_branch.outputs.branch }} != master
+        with:
+          tag_name: ${{ steps.determine_release.outputs.alias_release }}
+          name: "Continuous build #${{ github.run_number }}"
           body: |
             Build #${{ github.run_number }} from ${{ steps.date.outputs.date }}
-            - tbd: Artifact checksums
+            - This is the releasenotest text
+            - tbd: this and that...
           draft: false
           prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   buildA:
     runs-on: ubuntu-latest
@@ -59,18 +73,17 @@ jobs:
         run: |
           export ALIAS_RELEASE=${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}
           echo $ALIAS_RELEASE
+          mv ${{ github.workspace }}/Alias-icon-colour-03.svg ${{ github.workspace }}/Alias-Icon-BuildA.svg
           sleep 10
           echo Now go ahead!
       - name: Upload Release
         id: upload-release-asset
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.prepareRelease.outputs.upload_url }} # This pulls from the prepareRelease step before, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ${{ github.workspace }}/Alias-icon-colour-03.svg
-          asset_name: Alias-Icon-BuildA.svg
-          asset_content_type: application/octet-stream
+          url: ${{ needs.prepareRelease.outputs.upload_url }}
+          files: ${{ github.workspace }}/Alias-Icon-BuildA.svg
   buildB:
     runs-on: ubuntu-latest
     needs: prepareRelease
@@ -84,16 +97,15 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
+          mv ${{ github.workspace }}/Alias-icon-colour-03.svg ${{ github.workspace }}/Alias-Icon-BuildB.svg
       - name: Upload Release
         id: upload-release-asset
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.prepareRelease.outputs.upload_url }} # This pulls from the prepareRelease step before, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ${{ github.workspace }}/Alias-icon-colour-03.svg
-          asset_name: Alias-Icon-BuildB.svg
-          asset_content_type: application/octet-stream
+          url: ${{ needs.prepareRelease.outputs.upload_url }}
+          files: ${{ github.workspace }}/Alias-Icon-BuildB.svg
 
   buildC:
     runs-on: ubuntu-latest
@@ -106,16 +118,15 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
+          mv ${{ github.workspace }}/Alias-icon-colour-03.svg ${{ github.workspace }}/Alias-Icon-BuildC.svg
       - name: Upload Release
         id: upload-release-asset
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.buildB.outputs.upload_url }} # This pulls from the prepareRelease step before, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ${{ github.workspace }}/Alias-icon-colour-03.svg
-          asset_name: Alias-Icon-BuildC.svg
-          asset_content_type: application/octet-stream
+          url: ${{ needs.prepareRelease.outputs.upload_url }}
+          files: ${{ github.workspace }}/Alias-Icon-BuildC.svg
 
   # ==========================================================================
   # Build Windows version
@@ -132,3 +143,11 @@ jobs:
           powershell "(Get-FileHash Alias.zip).Hash > Alias.sha256"
       - name: Check
         run: type Alias.sha256
+      - name: Upload Release
+        id: upload-release-asset
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          url: ${{ needs.prepareRelease.outputs.upload_url }}
+          files: ${{ github.workspace }}/Alias.zip
