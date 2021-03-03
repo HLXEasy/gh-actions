@@ -37,7 +37,6 @@ jobs:
       - name: Create release
         id: create_release
         uses: softprops/action-gh-release@v1
-        if: ${{ steps.extract_branch.outputs.branch }} == master
         with:
           tag_name: ${{ steps.determine_release.outputs.alias_release }}
           draft: false
