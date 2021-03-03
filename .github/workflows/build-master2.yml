@@ -12,6 +12,7 @@ jobs:
       github_sha_short: ${{ steps.slug.outputs.sha8 }}
       alias_release: ${{ steps.determine_release.outputs.alias_release }}
     steps:
+      - uses: actions/checkout@v1
       - name: Get short SHA
         id: slug
         run: echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
@@ -25,8 +26,6 @@ jobs:
       - name: Determine Alias release
         id: determine_release
         run: |
-          pwd
-          ls -la
           if [[ ${{ steps.extract_branch.outputs.branch }} = master ]] ; then
               majorVersion=$(grep CLIENT_VERSION_MAJOR ${{ github.workspace }}/CMakeLists.txt | head -n1 | cut -d ' ' -f2 | sed 's/)//g' | tr -d '\\n' | tr -d '\\r' | sed 's/ //g')
               minorVersion=$(grep CLIENT_VERSION_MINOR ${{ github.workspace }}/CMakeLists.txt | head -n1 | cut -d ' ' -f2 | sed 's/)//g' | tr -d '\\n' | tr -d '\\r' | sed 's/ //g')
