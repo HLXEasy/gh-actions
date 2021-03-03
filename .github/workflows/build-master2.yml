@@ -116,3 +116,19 @@ jobs:
           asset_path: ${{ github.workspace }}/Alias-icon-colour-03.svg
           asset_name: Alias-Icon-BuildC.svg
           asset_content_type: application/octet-stream
+
+  # ==========================================================================
+  # Build Windows version
+  buildWindows:
+    runs-on: windows-latest
+    needs: prepareRelease
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Create zip archive
+        run: |
+          powershell Compress-Archive ${{ github.workspace }}/Alias-icon-colour-03.svg Alias.zip
+          powershell "(Get-FileHash Alias.zip).Hash > Alias.sha256"
+      - name: Check
+        run: type Alias.sha256
