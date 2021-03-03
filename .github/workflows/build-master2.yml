@@ -47,7 +47,7 @@ jobs:
       - name: Releasenotes from master
         id: create_release_master
         uses: softprops/action-gh-release@v1
-        if: steps.extract_branch.outputs.branch == master
+        if: steps.extract_branch.outputs.branch == 'master'
         with:
           tag_name: ${{ steps.determine_release.outputs.alias_release }}
           name: "Release build #${{ github.run_number }}"
@@ -59,7 +59,7 @@ jobs:
       - name: Releasenotes from Develop
         id: create_release_develop
         uses: softprops/action-gh-release@v1
-        if: steps.extract_branch.outputs.branch != master
+        if: steps.extract_branch.outputs.branch != 'master'
         with:
           tag_name: ${{ steps.determine_release.outputs.alias_release }}
           name: "Continuous build #${{ github.run_number }}"
