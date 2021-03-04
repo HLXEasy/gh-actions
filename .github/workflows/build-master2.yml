@@ -146,13 +146,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Create zip archive
-        shell: pwsh
         run: |
-          Compress-Archive ${{ github.workspace }}/Alias-icon-colour-03.svg Alias.zip
-          (Get-FileHash Alias.zip).Hash > Alias.sha256
-          $MyRawString = Get-Content -Raw Alias.sha256
-          $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
-          [System.IO.File]::WriteAllLines(Alias.sha256, $MyRawString, $Utf8NoBomEncoding)
+          powershell Compress-Archive ${{ github.workspace }}/Alias-icon-colour-03.svg Alias.zip
+          powershell "(Get-FileHash Alias.zip).Hash > Alias.sha256"
           type Alias.sha256
       - name: Check
         run: type Alias.sha256
