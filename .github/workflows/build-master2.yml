@@ -149,6 +149,7 @@ jobs:
         run: |
           powershell Compress-Archive ${{ github.workspace }}/Alias-icon-colour-03.svg Alias.zip
           powershell "(Get-FileHash Alias.zip).Hash > Alias.sha256"
+          powershell "(Get-Content Alias.sha256) | Out-File Alias.sha256 -Encoding ascii"
           type Alias.sha256
       - name: Check
         run: type Alias.sha256
